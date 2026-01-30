@@ -1,6 +1,4 @@
 import json
-import os
-from http.server import BaseHTTPRequestHandler
 
 # Special text memories
 text_memories = [
@@ -42,17 +40,16 @@ current_photo_index = 0
 last_blink_time = 0
 total_regular_photos = 25
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        global current_photo_index, last_blink_time
-        
-        # Set CORS headers
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        
-        if self.path == '/get_status':
+def handler(request):
+    global current_photo_index, last_blink_time
+    
+    # Get the path from the request
+    path = request.path if hasattr(request, 'path') else '/'
+    method = request.method if hasattr(request, 'method') else 'GET'
+    
+    # Handle different routes
+    if method == "GET":
+        if path == '/get_status':
             total_memories = total_regular_photos + len(text_memories)
             current_photo_name = ""
             
@@ -61,20 +58,24 @@ class handler(BaseHTTPRequestHandler):
             else:
                 current_photo_name = f"text_memory_{current_photo_index}"
             
-            response = {
-                "content": "A",
-                "currentPhotoIndex": current_photo_index,
-                "currentPhotoName": current_photo_name,
-                "totalPhotos": total_memories,
-                "blinkDetected": False
+            return {
+                "statusCode": 200,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                },
+                "body": json.dumps({
+                    "content": "A",
+                    "currentPhotoIndex": current_photo_index,
+                    "currentPhotoName": current_photo_name,
+                    "totalPhotos": total_memories,
+                    "blinkDetected": False
+                })
             }
-            
-            self.wfile.write(json.dumps(response).encode())
-            
-        elif self.path == '/' or self.path == '':
+        
+        elif path == '/' or path == '':
             # Serve HTML
-            try:
-                html_content = '''<!DOCTYPE html>
+            html_content = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -97,6 +98,8 @@ class handler(BaseHTTPRequestHandler):
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, var(--off-white) 0%, var(--rose-pink) 50%, var(--lavender) 100%);
             min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
         
         .flip-card {
@@ -282,27 +285,18 @@ class handler(BaseHTTPRequestHandler):
     </script>
 </body>
 </html>'''
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                self.wfile.write(html_content.encode())
-                
-            except Exception as e:
-                self.send_response(500)
-                self.send_header('Content-type', 'text/plain')
-                self.end_headers()
-                self.wfile.write(f"Error: {str(e)}".encode())
-        else:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b"Not found")
+            
+            return {
+                "statusCode": 200,
+                "headers": {
+                    "Content-Type": "text/html",
+                    "Access-Control-Allow-Origin": "*"
+                },
+                "body": html_content
+            }
     
-    def do_POST(self):
-        global current_photo_index, last_blink_time
-        
-        if self.path == '/manual_blink':
+    elif method == "POST":
+        if path == '/manual_blink':
             import time
             current_time = int(time.time() * 1000)
             
@@ -317,39 +311,48 @@ class handler(BaseHTTPRequestHandler):
                 else:
                     current_photo_name = f"text_memory_{current_photo_index}"
                 
-                response = {
-                    "success": True,
-                    "content": "A",
-                    "currentPhotoIndex": current_photo_index,
-                    "currentPhotoName": current_photo_name,
-                    "totalPhotos": total_memories
+                return {
+                    "statusCode": 200,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    "body": json.dumps({
+                        "success": True,
+                        "content": "A",
+                        "currentPhotoIndex": current_photo_index,
+                        "currentPhotoName": current_photo_name,
+                        "totalPhotos": total_memories
+                    })
                 }
-                
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps(response).encode())
             else:
-                response = {
-                    "success": False,
-                    "message": "Too soon! Please wait."
+                return {
+                    "statusCode": 429,
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                    "body": json.dumps({
+                        "success": False,
+                        "message": "Too soon! Please wait."
+                    })
                 }
-                
-                self.send_response(429)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps(response).encode())
-        else:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b"Not found")
     
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
+    # Handle CORS preflight
+    if method == "OPTIONS":
+        return {
+            "statusCode": 200,
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            }
+        }
+    
+    return {
+        "statusCode": 404,
+        "headers": {
+            "Content-Type": "text/plain"
+        },
+        "body": f"Not found: {method} {path}"
+    }
