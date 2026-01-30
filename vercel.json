@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/app.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     },
     {
@@ -25,11 +25,11 @@
   "routes": [
     {
       "src": "/get_status",
-      "dest": "/api/app.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/manual_blink",
-      "dest": "/api/app.py"
+      "dest": "/api/index.py"
     },
     {
       "src": "/photos/(.*)",
@@ -41,11 +41,10 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/api/app.py"
+      "dest": "/api/index.py"
     }
   ],
   "env": {
-    "NODE_ENV": "production",
     "PYTHON_VERSION": "3.9"
   }
 }
