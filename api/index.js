@@ -9,6 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files
+app.use('/photos', express.static(path.join(__dirname, '../public/photos')));
+app.use('/music', express.static(path.join(__dirname, '../public/music')));
+
 // Special text memories
 const textMemories = [
     "there is no easy way to say this",
@@ -48,6 +52,24 @@ const textMemories = [
 let currentPhotoIndex = 0;
 let lastBlinkTime = 0;
 const totalRegularPhotos = 25;
+
+// Helper function to get photo files
+function getPhotoFiles() {
+    const photosDir = path.join(__dirname, '../public/photos');
+    try {
+        const files = fs.readdirSync(photosDir)
+            .filter(file => file.toLowerCase().endsWith('.jpg') || file.toLowerCase().endsWith('.jpeg'))
+            .sort((a, b) => {
+                const numA = parseInt(a.split('.')[0]) || 999;
+                const numB = parseInt(b.split('.')[0]) || 999;
+                return numA - numB;
+            });
+        return files;
+    } catch (error) {
+        console.error('Error reading photos directory:', error);
+        return [];
+    }
+}
 
 // HTML content for the main page
 const getHtmlContent = () => `<!DOCTYPE html>
@@ -269,12 +291,17 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.get('/api/get_status', (req, res) => {
+    const photoFiles = getPhotoFiles();
     const totalMemories = totalRegularPhotos + textMemories.length;
     let currentPhotoName = "";
     
     if (currentPhotoIndex < totalRegularPhotos) {
-        currentPhotoName = `${currentPhotoIndex + 1}.jpeg`;
+        // Regular photo
+        if (photoFiles && currentPhotoIndex < photoFiles.length) {
+            currentPhotoName = photoFiles[currentPhotoIndex];
+        }
     } else {
+        // Text memory
         currentPhotoName = `text_memory_${currentPhotoIndex}`;
     }
     
@@ -294,9 +321,12 @@ app.post('/api/manual_blink', (req, res) => {
         currentPhotoIndex = (currentPhotoIndex + 1) % totalMemories;
         lastBlinkTime = currentTime;
         
+        const photoFiles = getPhotoFiles();
         let currentPhotoName = "";
         if (currentPhotoIndex < totalRegularPhotos) {
-            currentPhotoName = `${currentPhotoIndex + 1}.jpeg`;
+            if (photoFiles && currentPhotoIndex < photoFiles.length) {
+                currentPhotoName = photoFiles[currentPhotoIndex];
+            }
         } else {
             currentPhotoName = `text_memory_${currentPhotoIndex}`;
         }
