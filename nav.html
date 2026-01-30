@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoveBlink - Navigation</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --rose-pink: #F8BBD0;
+            --blush-pink: #F48FB1;
+            --lavender: #E1BEE7;
+            --peach: #FFCCBC;
+            --gold: #FFD54F;
+            --soft-red: #E57373;
+            --off-white: #FFF7F9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--off-white) 0%, var(--rose-pink) 50%, var(--lavender) 100%);
+            color: #333;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        /* Floating hearts animation */
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .floating-heart {
+            position: fixed;
+            color: var(--soft-red);
+            animation: floatHeart 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Glow effect */
+        .glow {
+            box-shadow: 0 0 30px rgba(244, 143, 177, 0.6);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--off-white);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--blush-pink);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Floating Hearts Component
+        const FloatingHearts = () => {
+            const [hearts, setHearts] = useState([]);
+            
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const newHeart = {
+                        id: Date.now() + Math.random(),
+                        left: Math.random() * 100,
+                        size: Math.random() * 20 + 15,
+                        duration: Math.random() * 3 + 4
+                    };
+                    setHearts(prev => [...prev.slice(-6), newHeart]);
+                }, 3000);
+                
+                return () => clearInterval(interval);
+            }, []);
+            
+            return (
+                <>
+                    {hearts.map(heart => (
+                        <div
+                            key={heart.id}
+                            className="floating-heart"
+                            style={{
+                                left: `${heart.left}%`,
+                                fontSize: `${heart.size}px`,
+                                animationDuration: `${heart.duration}s`
+                            }}
+                        >
+                            💕
+                        </div>
+                    ))}
+                </>
+            );
+        };
+        
+        // Navigation Component
+        const NavigationHub = () => {
+            const pages = [
+                {
+                    title: "Love Landing",
+                    description: "Beautiful welcome experience with emotional design",
+                    url: "/love",
+                    icon: "💕",
+                    color: "from-pink-400 to-purple-400"
+                },
+                {
+                    title: "Blink Experience",
+                    description: "Interactive blink detection with love-themed UI",
+                    url: "/experience",
+                    icon: "👁️",
+                    color: "from-purple-400 to-pink-400"
+                },
+                {
+                    title: "Original Demo",
+                    description: "Classic blink detection interface",
+                    url: "/",
+                    icon: "🎯",
+                    color: "from-blue-400 to-purple-400"
+                }
+            ];
+            
+            return (
+                <div className="min-h-screen p-6">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-12">
+                            <h1 className="text-5xl md:text-6xl font-bold mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
+                                LoveBlink Experience
+                            </h1>
+                            <p className="text-xl text-gray-700 mb-2">
+                                Choose your journey into emotional connection
+                            </p>
+                            <div className="text-4xl mt-4">💕✨🌸</div>
+                        </div>
+                        
+                        {/* Page Cards */}
+                        <div className="grid md:grid-cols-3 gap-8 mb-12">
+                            {pages.map((page, index) => (
+                                <div key={index} className="glass p-6 rounded-3xl hover:scale-105 transition-all duration-300 hover:glow">
+                                    <div className="text-center">
+                                        <div className="text-5xl mb-4">{page.icon}</div>
+                                        <h3 className="text-2xl font-bold mb-3">{page.title}</h3>
+                                        <p className="text-gray-700 mb-6">{page.description}</p>
+                                        <a
+                                            href={page.url}
+                                            className={`inline-block px-6 py-3 bg-gradient-to-r ${page.color} text-white rounded-full hover:scale-105 transition-transform font-semibold shadow-lg`}
+                                        >
+                                            Enter Experience
+                                        </a>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        
+                        {/* Features Section */}
+                        <div className="glass p-8 rounded-3xl mb-12">
+                            <h2 className="text-3xl font-bold text-center mb-8" style={{fontFamily: 'Playfair Display, serif'}}>
+                                Features of Love & Connection
+                            </h2>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">💝</div>
+                                    <h4 className="font-semibold mb-2">Emotional Design</h4>
+                                    <p className="text-sm text-gray-600">Warm, loving interface</p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">✨</div>
+                                    <h4 className="font-semibold mb-2">Magical Effects</h4>
+                                    <p className="text-sm text-gray-600">Beautiful animations</p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">🎯</div>
+                                    <h4 className="font-semibold mb-2">Smart Detection</h4>
+                                    <p className="text-sm text-gray-600">Advanced blink tracking</p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">🌸</div>
+                                    <h4 className="font-semibold mb-2">Photo Gallery</h4>
+                                    <p className="text-sm text-gray-600">Memory collection</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Instructions */}
+                        <div className="glass p-6 rounded-3xl">
+                            <h3 className="text-2xl font-semibold mb-4 text-center">
+                                How to Begin Your Journey
+                            </h3>
+                            <div className="grid md:grid-cols-3 gap-6">
+                                <div className="text-center">
+                                    <div className="text-4xl mb-2">1️⃣</div>
+                                    <h4 className="font-semibold mb-2">Choose Your Path</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Select the experience that calls to your heart
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-4xl mb-2">2️⃣</div>
+                                    <h4 className="font-semibold mb-2">Allow Camera Access</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Enable camera for blink detection magic
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-4xl mb-2">3️⃣</div>
+                                    <h4 className="font-semibold mb-2">Experience Love</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Watch as your blinks create beautiful moments
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="text-center mt-12">
+                            <div className="mb-4">
+                                <span className="text-3xl">💕</span>
+                                <h3 className="text-2xl font-bold mt-2" style={{fontFamily: 'Dancing Script, cursive'}}>
+                                    Made with love for human connections
+                                </h3>
+                            </div>
+                            <p className="text-gray-600">
+                                © 2024 LoveBlink. Spreading love, one blink at a time.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Main App Component
+        const App = () => {
+            return (
+                <div className="relative">
+                    <FloatingHearts />
+                    <NavigationHub />
+                </div>
+            );
+        };
+        
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+    
+    <!-- React and ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</body>
+</html>

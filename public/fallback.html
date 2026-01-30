@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fallback Blink Detection</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+        
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            min-height: 44px;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+        
+        video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            margin: 10px 0;
+            transform: scaleX(-1);
+        }
+        
+        .content-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .blink-indicator {
+            background: #f59e0b;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .manual-controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .sensitivity-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fallback Blink Detection</h1>
+        <p>This version uses a simple motion detection method as a fallback when MediaPipe doesn't work.</p>
+        
+        <div id="status" class="status">
+            <p>Ready to start...</p>
+        </div>
+        
+        <div>
+            <button onclick="startDetection()">Start Detection</button>
+            <button onclick="stopDetection()" disabled id="stopBtn">Stop Detection</button>
+            <button onclick="manualBlink()">Manual Blink Test</button>
+        </div>
+        
+        <div class="manual-controls">
+            <h3>Manual Controls (for testing)</h3>
+            <label>Sensitivity: <span id="sensitivityValue">15</span></label>
+            <input type="range" id="sensitivitySlider" class="sensitivity-slider" 
+                   min="5" max="50" value="15" 
+                   oninput="updateSensitivity(this.value)">
+            <br>
+            <label>Cooldown: <span id="cooldownValue">500</span>ms</label>
+            <input type="range" id="cooldownSlider" class="sensitivity-slider" 
+                   min="100" max="2000" value="500" step="100"
+                   oninput="updateCooldown(this.value)">
+        </div>
+        
+        <video id="video" autoplay playsInline muted></video>
+        
+        <div class="content-box" id="contentBox">
+            <h2 id="contentTitle">Content A</h2>
+            <p id="contentText">Blink to switch to Content B</p>
+        </div>
+        
+        <div id="blinkIndicator" style="display: none;" class="blink-indicator">
+            👁️ Blink Detected!
+        </div>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let stream = null;
+        let isDetecting = false;
+        let previousFrame = null;
+        let lastBlinkTime = 0;
+        let sensitivity = 15;
+        let cooldown = 500;
+        let currentContent = 'A';
+        let animationFrame = null;
+        
+        const colors = ['#667eea', '#764ba2', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'];
+        
+        function updateStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<p>${message}</p>`;
+            statusDiv.className = isError ? 'status error' : 'status success';
+            console.log('STATUS:', message);
+        }
+        
+        function updateSensitivity(value) {
+            sensitivity = parseInt(value);
+            document.getElementById('sensitivityValue').textContent = value;
+        }
+        
+        function updateCooldown(value) {
+            cooldown = parseInt(value);
+            document.getElementById('cooldownValue').textContent = value;
+        }
+        
+        function switchContent() {
+            console.log('switchContent called. Current content:', currentContent);
+            const title = document.getElementById('contentTitle');
+            const text = document.getElementById('contentText');
+            const box = document.getElementById('contentBox');
+            
+            if (currentContent === 'A') {
+                currentContent = 'B';
+                title.textContent = 'Content B';
+                text.textContent = 'Blink to switch back to Content A';
+                box.style.background = 'rgba(16, 185, 129, 0.3)';
+                console.log('Switched to Content B');
+            } else {
+                currentContent = 'A';
+                title.textContent = 'Content A';
+                text.textContent = 'Blink to switch to Content B';
+                box.style.background = 'rgba(59, 130, 246, 0.3)';
+                console.log('Switched to Content A');
+            }
+            
+            // Change background color
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            document.body.style.background = `linear-gradient(135deg, ${randomColor} 0%, #764ba2 100%)`;
+            console.log('Background changed to:', randomColor);
+        }
+        
+        function showBlinkIndicator() {
+            const indicator = document.getElementById('blinkIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 1000);
+        }
+        
+        function manualBlink() {
+            const now = Date.now();
+            if (now - lastBlinkTime >= cooldown) {
+                updateStatus('Manual blink triggered!');
+                switchContent();
+                showBlinkIndicator();
+                lastBlinkTime = now;
+            } else {
+                updateStatus(`Wait ${cooldown - (now - lastBlinkTime)}ms before next blink`);
+            }
+        }
+        
+        async function startDetection() {
+            try {
+                updateStatus('Starting camera and detection...');
+                
+                // Get camera stream
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: 'user',
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                
+                // Wait for video to be ready
+                await new Promise(resolve => {
+                    video.addEventListener('loadedmetadata', resolve, { once: true });
+                });
+                
+                isDetecting = true;
+                document.getElementById('stopBtn').disabled = false;
+                updateStatus('Detection started! Try blinking or covering your eyes briefly.');
+                
+                // Start motion detection
+                detectMotion();
+                
+            } catch (error) {
+                console.error('Detection start error:', error);
+                updateStatus(`Failed to start: ${error.message}`, true);
+            }
+        }
+        
+        function stopDetection() {
+            isDetecting = false;
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                video.srcObject = null;
+            }
+            
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+            
+            document.getElementById('stopBtn').disabled = true;
+            updateStatus('Detection stopped');
+        }
+        
+        function detectMotion() {
+            if (!isDetecting) return;
+            
+            // Create canvas for frame analysis
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 320; // Small size for performance
+            canvas.height = 240;
+            
+            let frameCount = 0;
+            let motionHistory = [];
+            const historySize = 10;
+            
+            function analyzeFrame() {
+                if (!isDetecting) return;
+                
+                try {
+                    // Draw current frame to canvas
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const currentFrame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    
+                    if (previousFrame) {
+                        // Calculate frame difference
+                        let diff = 0;
+                        const data = currentFrame.data;
+                        const prevData = previousFrame.data;
+                        
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Calculate grayscale difference
+                            const current = (data[i] + data[i+1] + data[i+2]) / 3;
+                            const previous = (prevData[i] + prevData[i+1] + prevData[i+2]) / 3;
+                            diff += Math.abs(current - previous);
+                        }
+                        
+                        const avgDiff = diff / (canvas.width * canvas.height);
+                        
+                        // Add to motion history
+                        motionHistory.push(avgDiff);
+                        if (motionHistory.length > historySize) {
+                            motionHistory.shift();
+                        }
+                        
+                        frameCount++;
+                        
+                        // Detect blink pattern: sudden drop in motion followed by recovery
+                        const now = Date.now();
+                        if (motionHistory.length >= 5 && now - lastBlinkTime >= cooldown) {
+                            
+                            // Look for blink pattern: high motion -> low motion -> high motion
+                            const recent = motionHistory.slice(-5);
+                            const avgRecent = recent.reduce((a, b) => a + b, 0) / recent.length;
+                            
+                            // Blink detected when motion suddenly increases (blink movement)
+                            if (avgDiff > 1.0 && now - lastBlinkTime >= cooldown) {
+                                console.log('🎯 BLINK DETECTED!');
+                                console.log(`Motion spike: ${avgDiff.toFixed(2)} (threshold: 1.0)`);
+                                
+                                updateStatus(`Blink detected! (motion: ${avgDiff.toFixed(2)})`);
+                                switchContent();
+                                showBlinkIndicator();
+                                lastBlinkTime = now;
+                                motionHistory = []; // Reset history after detection
+                            }
+                        }
+                        
+                        // Update status with current motion level
+                        if (frameCount % 30 === 0) { // Update every 30 frames
+                            updateStatus(`Detecting... (motion: ${avgDiff.toFixed(2)}, blink threshold: 1.0)`);
+                        }
+                    }
+                    
+                    previousFrame = currentFrame;
+                    
+                } catch (error) {
+                    console.error('Frame analysis error:', error);
+                }
+                
+                animationFrame = requestAnimationFrame(analyzeFrame);
+            }
+            
+            analyzeFrame();
+        }
+        
+        // Initialize
+        updateStatus('Ready! Click "Start Detection" to begin.');
+    </script>
+</body>
+</html>

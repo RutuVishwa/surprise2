@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoveBlink - Emotional Blink Detection</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js and GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollSmoother.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- React and ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        :root {
+            --rose-pink: #F8BBD0;
+            --blush-pink: #F48FB1;
+            --lavender: #E1BEE7;
+            --peach: #FFCCBC;
+            --gold: #FFD54F;
+            --soft-red: #E57373;
+            --off-white: #FFF7F9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--off-white) 0%, var(--rose-pink) 50%, var(--lavender) 100%);
+            color: #333;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        #root {
+            width: 100vw;
+            min-height: 100vh;
+        }
+        
+        /* Floating hearts animation */
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .floating-heart {
+            position: fixed;
+            color: var(--soft-red);
+            animation: floatHeart 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Heart pulse animation */
+        @keyframes heartPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .heart-pulse {
+            animation: heartPulse 0.8s ease-in-out;
+        }
+        
+        /* Glow effect */
+        .glow {
+            box-shadow: 0 0 30px rgba(244, 143, 177, 0.6);
+        }
+        
+        /* Sparkle animation */
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        .sparkle {
+            position: absolute;
+            color: var(--gold);
+            animation: sparkle 1s ease-in-out;
+            pointer-events: none;
+        }
+        
+        /* Video container */
+        .video-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Love meter */
+        @keyframes fillLove {
+            0% { width: 0%; }
+            100% { width: var(--love-percent); }
+        }
+        
+        .love-fill {
+            animation: fillLove 1s ease-out forwards;
+        }
+        
+        /* Full screen blink animation - realistic eyelids */
+        @keyframes topEyelidClose {
+            0% { transform: translateY(-100%); }
+            50% { transform: translateY(0%); }
+            100% { transform: translateY(-100%); }
+        }
+        
+        @keyframes bottomEyelidClose {
+            0% { transform: translateY(100%); }
+            50% { transform: translateY(0%); }
+            100% { transform: translateY(100%); }
+        }
+        
+        .eyelid-top {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 52vh;
+            background: #1a1a1a;
+            z-index: 9999;
+            pointer-events: none;
+            animation: topEyelidClose 0.8s ease-in-out;
+            border-bottom: 3px solid #2a2a2a;
+        }
+        
+        .eyelid-top::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: #1a1a1a;
+            border-radius: 0 0 50% 50% / 0 0 100% 100%;
+            box-shadow: 
+                0 2px 0 #2a2a2a,
+                0 4px 0 #3a3a3a,
+                0 6px 0 #4a4a4a,
+                0 8px 0 #5a5a5a,
+                0 10px 0 #6a6a6a,
+                0 12px 0 #7a7a7a,
+                0 14px 0 #8a8a8a,
+                0 16px 0 #9a9a9a;
+        }
+        
+        .eyelid-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 52vh;
+            background: #1a1a1a;
+            z-index: 9999;
+            pointer-events: none;
+            animation: bottomEyelidClose 0.8s ease-in-out;
+            border-top: 3px solid #2a2a2a;
+        }
+        
+        .eyelid-bottom::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: #1a1a1a;
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+            box-shadow: 
+                0 -2px 0 #2a2a2a,
+                0 -4px 0 #3a3a3a,
+                0 -6px 0 #4a4a4a,
+                0 -8px 0 #5a5a5a,
+                0 -10px 0 #6a6a6a,
+                0 -12px 0 #7a7a7a,
+                0 -14px 0 #8a8a8a,
+                0 -16px 0 #9a9a9a;
+        }
+        
+        /* Add subtle texture to eyelids */
+        .eyelid-top, .eyelid-bottom {
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%);
+        }
+        
+        .eyelid-top::after, .eyelid-bottom::before {
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%);
+        }
+        
+        /* Ending animation - everything disappears */
+        @keyframes fadeToBlack {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 0; }
+        }
+        
+        .ending-animation {
+            animation: fadeToBlack 3s ease-in-out forwards;
+        }
+        
+        .ending-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out 1s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        /* Flip Cards Styles */
+        .flip-card {
+            background-color: transparent;
+            width: 280px;
+            height: 350px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+        
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .flip-card-front {
+            background: linear-gradient(135deg, var(--rose-pink), var(--blush-pink));
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .flip-card-back {
+            background: linear-gradient(135deg, var(--lavender), var(--peach));
+            color: #333;
+            transform: rotateY(180deg);
+            padding: 20px;
+            font-size: 16px;
+            font-weight: normal;
+            line-height: 1.6;
+        }
+        
+        /* Smooth scrolling and transitions */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Transition animation between sections */
+        .section-transition {
+            animation: fadeOut 1.5s ease-in-out forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.95); }
+        }
+        
+        .section-enter {
+            animation: fadeIn 1.5s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        /* Three.js container */
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--off-white);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--blush-pink);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="three-container" data-app-container></div>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+        
+        // Floating Hearts Component
+        const FloatingHearts = () => {
+            const [hearts, setHearts] = useState([]);
+            
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const newHeart = {
+                        id: Date.now() + Math.random(),
+                        left: Math.random() * 100,
+                        size: Math.random() * 20 + 15,
+                        duration: Math.random() * 3 + 4
+                    };
+                    setHearts(prev => [...prev.slice(-6), newHeart]);
+                }, 3000);
+                
+                return () => clearInterval(interval);
+            }, []);
+            
+            return (
+                <>
+                    {hearts.map(heart => (
+                        <div
+                            key={heart.id}
+                            className="floating-heart"
+                            style={{
+                                left: `${heart.left}%`,
+                                fontSize: `${heart.size}px`,
+                                animationDuration: `${heart.duration}s`
+                            }}
+                        >
+                            💕
+                        </div>
+                    ))}
+                </>
+            );
+        };
+        
+        // Sparkle Effect Component
+        const SparkleEffect = ({ trigger }) => {
+            const [sparkles, setSparkles] = useState([]);
+            
+            useEffect(() => {
+                if (trigger) {
+                    const newSparkles = Array.from({ length: 8 }, (_, i) => ({
+                        id: Date.now() + i,
+                        x: Math.random() * 100,
+                        y: Math.random() * 100
+                    }));
+                    setSparkles(newSparkles);
+                    
+                    setTimeout(() => setSparkles([]), 1000);
+                }
+            }, [trigger]);
+            
+            return (
+                <>
+                    {sparkles.map(sparkle => (
+                        <div
+                            key={sparkle.id}
+                            className="sparkle"
+                            style={{
+                                left: `${sparkle.x}%`,
+                                top: `${sparkle.y}%`
+                            }}
+                        >
+                            ✨
+                        </div>
+                    ))}
+                </>
+            );
+        };
+        
+        // Love Meter Component
+        const LoveMeter = ({ value, max }) => {
+            const percentage = Math.min((value / max) * 100, 100);
+            
+            return (
+                <div className="w-full bg-white bg-opacity-30 rounded-full h-6 overflow-hidden">
+                    <div 
+                        className="h-full bg-gradient-to-r from-pink-400 to-red-400 rounded-full love-fill flex items-center justify-center"
+                        style={{ '--love-percent': `${percentage}%` }}
+                    >
+                        <span className="text-xs text-white font-semibold">
+                            {Math.round(percentage)}%
+                        </span>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Main Blink Detection App
+        const BlinkDetectionApp = () => {
+            const [status, setStatus] = useState({
+                content: 'A',
+                currentPhotoIndex: 0,
+                currentPhotoName: '',
+                totalPhotos: 0,
+                blinkDetected: false
+            });
+            
+            const [blinkCount, setBlinkCount] = useState(0);
+            const [sparkleTrigger, setSparkleTrigger] = useState(false);
+            const [isBlinkAnimating, setIsBlinkAnimating] = useState(false);
+            const [showGallery, setShowGallery] = useState(false);
+            const [flippedCards, setFlippedCards] = useState(new Set());
+            
+            const emotionMessages = [
+                "Time flies by in the blink of an eye... 💕",
+                "Moments pass like whispers in the wind... 💝",
+                "Each blink carries a lifetime of memories... ✨",
+                "In an instant, everything changes... 🌸",
+                "The past fades with each gentle blink... 💫"
+            ];
+            
+            // Special text messages for memories (all your sentences)
+            const specialTextMessages = [
+                "there is no easy way to say this",
+                "but",
+                "it is over right??",
+                "from shubra ki train miss to the anvesh 26",
+                "all the moments we lived in these 3 years",
+                "memories that i will treasure forever",
+                "but those days will be behind us, after sometime",
+                "of course not all memories are great",
+                "but those represent us",
+                "maybe it represents that no one is 100 percent perfect but when we meet each other we completely forget about the defects",
+                "of course we were not that great of a group",
+                "but",
+                "i just want you to know that you guys mean alot to me even more than my family maybe",
+                "and i will do anything in my power to keep shitposting alive till the end",
+                "i just wish there was a button like the one you are clicking right now",
+                "so that i would never press it",
+                "just to live in a particular momment for lifetime",
+                "but if it was there",
+                "we would have never seen what else life had to offer",
+                "alas!! we may or may not meet after these few days",
+                "Guess we have to find out",
+                "till then take care",
+                "and dont you dare forget this group",
+                "else",
+                "i will come to your house and personally remind you of it",
+                "in the end",
+                "just remeber 2 things",
+                "1. woh aunty  jiska phone escalator se gira tha uska phone abhi bhi damaged he ",
+                "and",
+                "2. Jai Shree Allah",
+                "bye"
+            ];
+            
+            // Flip card front texts (names)
+            const flipCardFrontTexts = [
+                "Soumya Dedh-",
+                "Alarm Mhatre", 
+                "Vedika Vilas Tiger",
+                "Shubra Acer-mall",
+                "hilani"
+            ];
+            
+            // Flip card back texts (dialogues)
+            const flipCardBackTexts = [
+                "pandurangwadi malum he??",
+                "mi mulund la rahto", 
+                "pen-fight kheltoy, khelnar tu pan?",
+                "tune maths ka ssignment kia he toh bhej na",
+                "tera parabola banake ho gya toh meko bhi bata na"
+            ];
+            
+            // Total memories = regular photos + text messages
+            const totalTextMemories = specialTextMessages.length;
+            const [showEnding, setShowEnding] = useState(false);
+            
+            const [emotionMessage, setEmotionMessage] = useState("");
+            const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+            
+            // Initialize Three.js experience and keyboard events
+            useEffect(() => {
+                // Start music when gallery is shown for the first time
+                if (showGallery && !window.backgroundMusic) {
+                    const audio = new Audio('/music/She_&_Him_-_I_Thought_I_Saw_Your_Face_Today_Karaoke_Instrumental_Lower_Higher_Male_&_Original_Key_128k.mp3');
+                    audio.loop = true;
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log('Audio play failed:', e));
+                    setIsMusicPlaying(true);
+                    
+                    // Store audio reference for later control
+                    window.backgroundMusic = audio;
+                }
+                
+                // Three.js script
+                const script = document.createElement('script');
+                script.textContent = `
+                    class Experience {
+                        constructor(options = { containerSelector: "[data-app-container]" }) {
+                            this.options = options;
+                            this.container = document.querySelector(this.options.containerSelector);
+                            
+                            // GSAP Plugins
+                            gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
+                            
+                            // Time
+                            this.clock = new THREE.Clock();
+                            this.time = 0;
+                            
+                            // THREE items
+                            this.renderer;
+                            this.camera;
+                            this.scene;
+                            this.controls;
+                            this.meshes = [];
+                            
+                            // Rotation
+                            this.targetRotation = 0;
+                            
+                            // Settings
+                            this.settings = {
+                                cameraDistance: 5,
+                                scalePeriod: 8
+                            };
+                            
+                            this.init();
+                        }
+                        
+                        init = () => {
+                            this.createApp();
+                            this.createItems();
+                            this.initScroll();
+                            this.update();
+                            this.container.classList.add("is-ready");
+                        };
+                        
+                        initScroll = () => {
+                            this.scrollSmoother = ScrollSmoother.create({
+                                content: "#content",
+                                smooth: 1.2
+                            });
+                            
+                            // Add scroll triggers for each span item
+                            document.querySelectorAll("span").forEach((span) => {
+                                ScrollTrigger.create({
+                                    trigger: span,
+                                    start: "top 90%",
+                                    end: "bottom 10%",
+                                    onUpdate: (self) => {
+                                        const dist = Math.abs(self.progress - 0.5);
+                                        const lightness = this.mapToRange(dist, 0, 0.5, 80, 100);
+                                        span.style.setProperty("--l", lightness + "%");
+                                    }
+                                });
+                            });
+                        };
+                        
+                        createApp = () => {
+                            // Renderer
+                            this.renderer = new THREE.WebGLRenderer({
+                                antialias: false,
+                                alpha: true
+                            });
+                            this.renderer.setPixelRatio(1.5);
+                            this.renderer.setSize(
+                                this.container.offsetWidth,
+                                this.container.offsetHeight
+                            );
+                            this.container.appendChild(this.renderer.domElement);
+                            
+                            // Camera
+                            this.camera = new THREE.PerspectiveCamera(
+                                45,
+                                this.container.offsetWidth / this.container.offsetHeight,
+                                1,
+                                10000
+                            );
+                            this.camera.position.set(0, 0, this.settings.cameraDistance);
+                            this.scene = new THREE.Scene();
+                            
+                            // Orbit Controls
+                            this.controls = new THREE.OrbitControls(
+                                this.camera,
+                                this.renderer.domElement
+                            );
+                            this.controls.enableKeys = false;
+                            this.controls.enableZoom = false;
+                            this.controls.enableDamping = false;
+                            
+                            // Resize the renderer on window resize
+                            window.addEventListener(
+                                "resize",
+                                () => {
+                                    this.camera.aspect =
+                                        this.container.offsetWidth / this.container.offsetHeight;
+                                    this.camera.updateProjectionMatrix();
+                                    this.renderer.setSize(
+                                        this.container.offsetWidth,
+                                        this.container.offsetHeight
+                                    );
+                                },
+                                true
+                            );
+                            
+                            // Ambient Light
+                            let ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+                            this.scene.add(ambientLight);
+                            
+                            // Directional Light
+                            let directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
+                            directionalLight.position.set(5, 3, 2);
+                            directionalLight.target.position.set(0, 0, 0);
+                            this.scene.add(directionalLight);
+                        };
+                        
+                        createItems = () => {
+                            // Box
+                            let boxGeom = new THREE.BoxBufferGeometry(2, 2, 2);
+                            let material = new THREE.MeshLambertMaterial({
+                                color: 0xffffff
+                            });
+                            
+                            const itemCount = 40;
+                            for (let i = 0; i < itemCount; i++) {
+                                const mesh = new THREE.Mesh(boxGeom, material);
+                                mesh.position.y = 13 * (Math.random() * 2 - 1);
+                                mesh.position.x = 3 * (Math.random() * 2 - 1);
+                                mesh.position.z = 4 * (Math.random() * 2 - 1);
+                                mesh.rotation.y = Math.PI * Math.random();
+                                mesh.rotationSpeed = Math.random() * 0.01 + 0.005;
+                                this.scene.add(mesh);
+                                this.meshes.push(mesh);
+                            }
+                        };
+                        
+                        updateItems = () => {
+                            const time = this.time;
+                            const amplitude = 0.05;
+                            const period = this.settings.scalePeriod;
+                            
+                            const baseScale = 0.2;
+                            const scaleEffect =
+                                baseScale + amplitude * Math.sin(Math.PI * 2 * (time / period));
+                            
+                            this.meshes.forEach((mesh) => {
+                                mesh.scale.set(scaleEffect, scaleEffect, scaleEffect);
+                                mesh.rotation.x += mesh.rotationSpeed;
+                            });
+                            
+                            // Update camera
+                            const cameraRange = 10;
+                            this.camera.position.y = this.mapToRange(
+                                this.scrollSmoother.progress,
+                                0,
+                                1,
+                                cameraRange,
+                                -cameraRange
+                            );
+                        };
+                        
+                        mapToRange = (value, inMin, inMax, outMin, outMax) => {
+                            return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+                        };
+                        
+                        update = () => {
+                            this.time = this.clock.getElapsedTime();
+                            this.updateItems();
+                            this.renderer.render(this.scene, this.camera);
+                            window.requestAnimationFrame(this.update);
+                        };
+                    }
+                    
+                    new Experience();
+                `;
+                document.body.appendChild(script);
+                
+                // Keyboard event handler
+                const handleKeyPress = (event) => {
+                    if (event.key === 'Enter' && showGallery) {
+                        triggerManualBlink();
+                    }
+                };
+                
+                document.addEventListener('keydown', handleKeyPress);
+                
+                return () => {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    document.removeEventListener('keydown', handleKeyPress);
+                };
+            }, [showGallery, isMusicPlaying]);
+            
+            const toggleMusic = () => {
+                if (window.backgroundMusic) {
+                    if (isMusicPlaying) {
+                        window.backgroundMusic.pause();
+                        setIsMusicPlaying(false);
+                    } else {
+                        window.backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+                        setIsMusicPlaying(true);
+                    }
+                }
+            };
+            
+            // Handle card flip
+            const handleCardFlip = (cardNumber) => {
+                setFlippedCards(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(cardNumber)) {
+                        newSet.delete(cardNumber);
+                    } else {
+                        newSet.add(cardNumber);
+                    }
+                    return newSet;
+                });
+            };
+            
+            // Check if all cards are flipped
+            useEffect(() => {
+                if (flippedCards.size === 5) {
+                    // Add transition animation
+                    const flipSection = document.querySelector('.flip-cards-section');
+                    if (flipSection) {
+                        flipSection.classList.add('section-transition');
+                        
+                        setTimeout(() => {
+                            setShowGallery(true);
+                        }, 1500);
+                    }
+                }
+            }, [flippedCards]);
+            
+            // Fetch initial status
+            const fetchInitialStatus = useCallback(async () => {
+                try {
+                    const response = await fetch('/api/get_status');
+                    const data = await response.json();
+                    setStatus(data);
+                } catch (err) {
+                    console.error('Error fetching initial status:', err);
+                }
+            }, []);
+            
+            // Load initial status on mount
+            useEffect(() => {
+                fetchInitialStatus();
+            }, [fetchInitialStatus]);
+            
+            // Handle blink animation
+            const handleBlinkDetected = useCallback(() => {
+                setBlinkCount(prev => prev + 1);
+                setSparkleTrigger(true);
+                
+                // Set random emotion message
+                const randomMessage = emotionMessages[Math.floor(Math.random() * emotionMessages.length)];
+                setEmotionMessage(randomMessage);
+                
+                setTimeout(() => {
+                    setSparkleTrigger(false);
+                    setEmotionMessage("");
+                }, 2000);
+            }, []);
+            
+            // Manual blink trigger with realistic eyelid animation
+            const triggerManualBlink = async () => {
+                // Check if we're at the last memory and should show ending
+                if (status.currentPhotoIndex >= 25 + specialTextMessages.length - 1) {
+                    // Show ending animation
+                    setShowEnding(true);
+                    document.body.classList.add('ending-animation');
+                    
+                    // Create ending screen
+                    const endingScreen = document.createElement('div');
+                    endingScreen.className = 'ending-screen';
+                    endingScreen.innerHTML = `
+                        <div class="text-center text-white">
+                            <div class="text-6xl mb-8">👁️</div>
+                            <p class="text-2xl font-light italic mb-4">Time flies by in the blink of an eye...</p>
+                            <p class="text-lg opacity-70">Thank you for the memories</p>
+                        </div>
+                    `;
+                    document.body.appendChild(endingScreen);
+                    
+                    return; // Don't do anything else
+                }
+                
+                setIsBlinkAnimating(true);
+                
+                // Create realistic eyelid elements
+                const topEyelid = document.createElement('div');
+                topEyelid.className = 'eyelid-top';
+                
+                const bottomEyelid = document.createElement('div');
+                bottomEyelid.className = 'eyelid-bottom';
+                
+                // Add eyelids to body
+                document.body.appendChild(topEyelid);
+                document.body.appendChild(bottomEyelid);
+                
+                // Change photo when eyelids are fully closed (at 400ms)
+                setTimeout(async () => {
+                    try {
+                        const response = await fetch('/api/manual_blink', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            setStatus(prev => ({
+                                ...prev,
+                                currentPhotoIndex: data.currentPhotoIndex,
+                                currentPhotoName: data.currentPhotoName
+                            }));
+                            handleBlinkDetected();
+                        }
+                    } catch (err) {
+                        console.error('Error triggering manual blink:', err);
+                    }
+                }, 400);
+                
+                // Remove eyelids after animation completes (800ms)
+                setTimeout(() => {
+                    if (topEyelid.parentNode) {
+                        topEyelid.parentNode.removeChild(topEyelid);
+                    }
+                    if (bottomEyelid.parentNode) {
+                        bottomEyelid.parentNode.removeChild(bottomEyelid);
+                    }
+                    setIsBlinkAnimating(false);
+                }, 800);
+            };
+            
+            return (
+                <div id="content" className="min-h-screen">
+                    {!showGallery ? (
+                        // Flip Cards Section
+                        <div className="flip-cards-section min-h-screen flex flex-col items-center justify-center p-8">
+                            <div className="text-center mb-12">
+                                <h1 className="text-5xl md:text-6xl font-bold mb-6" style={{fontFamily: 'Playfair Display, serif'}}>
+                                    Begin Your Journey 💕
+                                </h1>
+                                <p className="text-xl text-gray-700 mb-4">
+                                    Flip each card to unlock the memories within
+                                </p>
+                                <p className="text-lg text-gray-600">
+                                    Cards flipped: {flippedCards.size} / 5
+                                </p>
+                            </div>
+                            
+                            <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
+                                {[1, 2, 3, 4, 5].map((cardNumber) => (
+                                    <div
+                                        key={cardNumber}
+                                        className={`flip-card ${flippedCards.has(cardNumber) ? 'flipped' : ''}`}
+                                        onClick={() => handleCardFlip(cardNumber)}
+                                    >
+                                        <div className="flip-card-inner">
+                                            <div className="flip-card-front">
+                                                <div className="text-center">
+                                                    <div className="text-6xl mb-4">💖</div>
+                                                    <div>{flipCardFrontTexts[cardNumber - 1]}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flip-card-back">
+                                                <div className="text-center">
+                                                    <div className="text-4xl mb-4">💭</div>
+                                                    <p>{flipCardBackTexts[cardNumber - 1]}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            {flippedCards.size === 5 && (
+                                <div className="mt-12 text-center">
+                                    <div className="inline-flex items-center space-x-2 glass px-6 py-3 rounded-full">
+                                        <span className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
+                                        <span className="text-lg font-semibold">All cards unlocked! Preparing memories...</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        // Memory Gallery Section - Fullscreen
+                        <div className="section-enter min-h-screen p-0 relative">
+                            {/* Header - Overlay - Only show on first image */}
+                            {status.currentPhotoIndex === 0 && (
+                                <div className="absolute top-0 left-0 right-0 z-10 p-6 text-center">
+                                    <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white" style={{fontFamily: 'Playfair Display, serif'}}>
+                                        Time Flies By 💕
+                                    </h1>
+                                    <p className="text-lg text-white mb-4">
+                                        Press <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full font-mono">ENTER</span> to blink to next memory
+                                    </p>
+                                    <div className="inline-flex items-center space-x-2 glass px-4 py-2 rounded-full">
+                                        <span className="text-sm font-semibold">
+                                            Memory {status.currentPhotoIndex + 1} of {status.totalPhotos + totalTextMemories}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Music Control Button - Always visible in gallery */}
+                            <button
+                                onClick={toggleMusic}
+                                className="absolute top-6 right-6 z-10 glass px-4 py-2 rounded-full hover:scale-105 transition-transform"
+                                aria-label={isMusicPlaying ? "Pause music" : "Play music"}
+                            >
+                                <span className="text-lg">
+                                    {isMusicPlaying ? "🔇" : "🔊"}
+                                </span>
+                            </button>
+                            
+                            {/* Fullscreen Memory Display */}
+                            <div className="min-h-screen flex items-center justify-center">
+                                {status.totalPhotos > 0 ? (
+                                    (() => {
+                                        const photoIndex = status.currentPhotoIndex;
+                                        const totalRegularPhotos = 25; // Photos 1-25
+                                        
+                                        if (photoIndex >= totalRegularPhotos) {
+                                            // Display text memories after regular photos
+                                            const textIndex = photoIndex - totalRegularPhotos;
+                                            
+                                            if (textIndex < specialTextMessages.length) {
+                                                return (
+                                                    <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-8">
+                                                        <div className="text-center max-w-4xl">
+                                                            <div className="text-8xl mb-8">💭</div>
+                                                            <p className="text-4xl md:text-5xl font-light text-white leading-relaxed italic">
+                                                                "{specialTextMessages[textIndex]}"
+                                                            </p>
+                                                            <p className="text-xl text-gray-400 mt-8">
+                                                                Memory {status.currentPhotoIndex + 1}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            } else {
+                                                // If we've gone through all text memories, show a final message
+                                                return (
+                                                    <div className="w-full h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-purple-900 flex items-center justify-center p-8">
+                                                        <div className="text-center max-w-4xl">
+                                                            <div className="text-8xl mb-8">💕</div>
+                                                            <p className="text-4xl md:text-5xl font-light text-white leading-relaxed italic">
+                                                                "Thank you for the memories..."
+                                                            </p>
+                                                            <p className="text-xl text-gray-300 mt-8">
+                                                                All memories completed
+                                                            </p>
+                                                            <p className="text-lg text-gray-400 mt-4">
+                                                                Press ENTER to restart
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                        } else {
+                                            // Display regular photo fullscreen
+                                            return (
+                                                <div className="w-full h-screen relative bg-gradient-to-br from-orange-300 via-pink-300 to-rose-200">
+                                                    <img
+                                                        src={`/photos/${status.currentPhotoName}`}
+                                                        alt={`Memory ${status.currentPhotoIndex + 1}`}
+                                                        className="w-full h-full object-contain"
+                                                        onLoad={() => console.log('Photo loaded successfully')}
+                                                        onError={(e) => {
+                                                            console.log('Photo failed to load, using fallback');
+                                                            e.target.style.display = 'none';
+                                                            const parent = e.target.parentElement;
+                                                            if (parent && !parent.querySelector('.placeholder')) {
+                                                                const placeholder = document.createElement('div');
+                                                                placeholder.className = 'placeholder w-full h-screen bg-gradient-to-br from-orange-300 via-pink-300 to-rose-200 flex items-center justify-center';
+                                                                placeholder.innerHTML = `
+                                                                    <div class="text-center">
+                                                                        <span class="text-8xl mb-6 block">🌅</span>
+                                                                        <p class="text-2xl text-gray-700 font-semibold">Photo ${status.currentPhotoIndex + 1}</p>
+                                                                        <p class="text-lg text-gray-500">Loading beautiful memory...</p>
+                                                                    </div>
+                                                                `;
+                                                                parent.appendChild(placeholder);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        }
+                                    })()
+                                ) : (
+                                    <div className="w-full h-screen bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <span className="text-8xl mb-6 block">🌸</span>
+                                            <p className="text-2xl text-gray-700">Loading memories...</p>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {false && (
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <span className="text-8xl heart-pulse">💕</span>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Emotion Message - Overlay */}
+                            {emotionMessage && (
+                                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+                                    <div className="glass p-4 rounded-2xl text-center glow">
+                                        <p className="text-lg font-semibold text-pink-600">
+                                            {emotionMessage}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+        
+        // Main App Component
+        const App = () => {
+            return (
+                <div className="relative">
+                    <FloatingHearts />
+                    <BlinkDetectionApp />
+                </div>
+            );
+        };
+        
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

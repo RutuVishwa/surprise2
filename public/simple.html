@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Blink Detection Test</title>
+    
+    <!-- Try different MediaPipe CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+        
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #2563eb;
+        }
+        
+        video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        
+        .video-container {
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple MediaPipe FaceMesh Test</h1>
+        
+        <div id="status" class="status">
+            <p>Initializing...</p>
+        </div>
+        
+        <div>
+            <button onclick="testMediaPipe()">Test MediaPipe</button>
+            <button onclick="startCamera()">Start Camera</button>
+            <button onclick="stopCamera()">Stop Camera</button>
+        </div>
+        
+        <div class="video-container">
+            <video id="video" autoplay playsInline muted></video>
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div id="results">
+            <h3>Detection Results:</h3>
+            <pre id="output">No data yet...</pre>
+        </div>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let stream = null;
+        let faceMesh = null;
+        
+        function updateStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<p>${message}</p>`;
+            statusDiv.className = isError ? 'status error' : 'status success';
+            console.log('STATUS:', message);
+        }
+        
+        function updateOutput(data) {
+            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        }
+        
+        async function testMediaPipe() {
+            try {
+                updateStatus('Testing MediaPipe availability...');
+                
+                if (typeof window.FaceMesh === 'undefined') {
+                    throw new Error('MediaPipe FaceMesh not loaded');
+                }
+                
+                updateStatus('MediaPipe FaceMesh found, creating instance...');
+                
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`;
+                    }
+                });
+                
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: false,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                
+                faceMesh.onResults((results) => {
+                    console.log('FaceMesh results:', results);
+                    
+                    if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                        const landmarks = results.multiFaceLandmarks[0];
+                        updateOutput({
+                            faceDetected: true,
+                            landmarkCount: landmarks.length,
+                            sampleLandmarks: {
+                                leftEyeTop: landmarks[159],
+                                leftEyeBottom: landmarks[145],
+                                rightEyeTop: landmarks[386],
+                                rightEyeBottom: landmarks[374]
+                            }
+                        });
+                        
+                        // Draw landmarks
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        // Draw eye landmarks
+                        const drawPoint = (landmark, color) => {
+                            ctx.fillStyle = color;
+                            ctx.beginPath();
+                            ctx.arc(
+                                landmark.x * canvas.width,
+                                landmark.y * canvas.height,
+                                5,
+                                0,
+                                2 * Math.PI
+                            );
+                            ctx.fill();
+                        };
+                        
+                        drawPoint(landmarks[159], '#FF6B6B'); // Left eye top
+                        drawPoint(landmarks[145], '#FF6B6B'); // Left eye bottom
+                        drawPoint(landmarks[386], '#4ECDC4'); // Right eye top
+                        drawPoint(landmarks[374], '#4ECDC4'); // Right eye bottom
+                        
+                    } else {
+                        updateOutput({ faceDetected: false });
+                    }
+                });
+                
+                updateStatus('MediaPipe FaceMesh initialized successfully!');
+                
+            } catch (error) {
+                console.error('MediaPipe test error:', error);
+                updateStatus(`MediaPipe test failed: ${error.message}`, true);
+                updateOutput({ error: error.message, stack: error.stack });
+            }
+        }
+        
+        async function startCamera() {
+            try {
+                updateStatus('Starting camera...');
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user' },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    updateStatus('Camera started successfully!');
+                });
+                
+                if (faceMesh) {
+                    // Start processing
+                    const processVideo = () => {
+                        if (faceMesh && video.readyState === 4) {
+                            faceMesh.send({ image: video });
+                        }
+                        requestAnimationFrame(processVideo);
+                    };
+                    processVideo();
+                }
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                updateStatus(`Camera failed: ${error.message}`, true);
+            }
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                video.srcObject = null;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                updateStatus('Camera stopped');
+            }
+        }
+        
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testMediaPipe();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

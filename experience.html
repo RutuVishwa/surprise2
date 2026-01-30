@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love in Every Blink 💕 - Experience</title>
+    
+    <!-- MediaPipe FaceMesh CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    
+    <!-- React and ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --rose-pink: #F8BBD0;
+            --blush-pink: #F48FB1;
+            --lavender: #E1BEE7;
+            --peach: #FFCCBC;
+            --gold: #FFD54F;
+            --soft-red: #E57373;
+            --off-white: #FFF7F9;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--off-white) 0%, var(--rose-pink) 50%, var(--lavender) 100%);
+            color: #333;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        #root {
+            width: 100vw;
+            min-height: 100vh;
+        }
+        
+        /* Floating hearts animation */
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .floating-heart {
+            position: fixed;
+            color: var(--soft-red);
+            animation: floatHeart 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Heart pulse animation */
+        @keyframes heartPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .heart-pulse {
+            animation: heartPulse 0.8s ease-in-out;
+        }
+        
+        /* Glow effect */
+        .glow {
+            box-shadow: 0 0 30px rgba(244, 143, 177, 0.6);
+        }
+        
+        /* Sparkle animation */
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        
+        .sparkle {
+            position: absolute;
+            color: var(--gold);
+            animation: sparkle 1s ease-in-out;
+            pointer-events: none;
+        }
+        
+        /* Video container */
+        .video-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            border-radius: 20px;
+        }
+        
+        /* Love meter */
+        @keyframes fillLove {
+            0% { width: 0%; }
+            100% { width: var(--love-percent); }
+        }
+        
+        .love-fill {
+            animation: fillLove 1s ease-out forwards;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--off-white);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--blush-pink);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+        
+        // Floating Hearts Component
+        const FloatingHearts = () => {
+            const [hearts, setHearts] = useState([]);
+            
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const newHeart = {
+                        id: Date.now() + Math.random(),
+                        left: Math.random() * 100,
+                        size: Math.random() * 20 + 15,
+                        duration: Math.random() * 3 + 4
+                    };
+                    setHearts(prev => [...prev.slice(-8), newHeart]);
+                }, 3000);
+                
+                return () => clearInterval(interval);
+            }, []);
+            
+            return (
+                <>
+                    {hearts.map(heart => (
+                        <div
+                            key={heart.id}
+                            className="floating-heart"
+                            style={{
+                                left: `${heart.left}%`,
+                                fontSize: `${heart.size}px`,
+                                animationDuration: `${heart.duration}s`
+                            }}
+                        >
+                            💕
+                        </div>
+                    ))}
+                </>
+            );
+        };
+        
+        // Sparkle Effect Component
+        const SparkleEffect = ({ trigger }) => {
+            const [sparkles, setSparkles] = useState([]);
+            
+            useEffect(() => {
+                if (trigger) {
+                    const newSparkles = Array.from({ length: 8 }, (_, i) => ({
+                        id: Date.now() + i,
+                        x: Math.random() * 100,
+                        y: Math.random() * 100
+                    }));
+                    setSparkles(newSparkles);
+                    
+                    setTimeout(() => setSparkles([]), 1000);
+                }
+            }, [trigger]);
+            
+            return (
+                <>
+                    {sparkles.map(sparkle => (
+                        <div
+                            key={sparkle.id}
+                            className="sparkle"
+                            style={{
+                                left: `${sparkle.x}%`,
+                                top: `${sparkle.y}%`
+                            }}
+                        >
+                            ✨
+                        </div>
+                    ))}
+                </>
+            );
+        };
+        
+        // Love Meter Component
+        const LoveMeter = ({ value, max }) => {
+            const percentage = Math.min((value / max) * 100, 100);
+            
+            return (
+                <div className="w-full bg-white bg-opacity-30 rounded-full h-6 overflow-hidden">
+                    <div 
+                        className="h-full bg-gradient-to-r from-pink-400 to-red-400 rounded-full love-fill flex items-center justify-center"
+                        style={{ '--love-percent': `${percentage}%` }}
+                    >
+                        <span className="text-xs text-white font-semibold">
+                            {Math.round(percentage)}%
+                        </span>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Blink Detection Component
+        const BlinkDetector = () => {
+            const videoRef = useRef(null);
+            const canvasRef = useRef(null);
+            const [isDetecting, setIsDetecting] = useState(false);
+            const [blinkCount, setBlinkCount] = useState(0);
+            const [loveLevel, setLoveLevel] = useState(0);
+            const [heartAnimation, setHeartAnimation] = useState(false);
+            const [sparkleTrigger, setSparkleTrigger] = useState(false);
+            const [currentPhoto, setCurrentPhoto] = useState(0);
+            const [photos, setPhotos] = useState([]);
+            const [cameraReady, setCameraReady] = useState(false);
+            const [emotionMessage, setEmotionMessage] = useState("");
+            
+            const emotionMessages = [
+                "Love detected in your eyes! 💕",
+                "Your heart is speaking! 💝",
+                "Beautiful connection! ✨",
+                "Pure joy in your gaze! 🌸",
+                "Emotional magic happening! 💫"
+            ];
+            
+            // Initialize MediaPipe FaceMesh
+            const initializeFaceMesh = useCallback(async () => {
+                try {
+                    const faceMesh = new FaceMesh({
+                        locateFile: (file) => {
+                            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                        }
+                    });
+                    
+                    faceMesh.setOptions({
+                        maxNumFaces: 1,
+                        refineLandmarks: true,
+                        minDetectionConfidence: 0.5,
+                        minTrackingConfidence: 0.5
+                    });
+                    
+                    faceMesh.onResults((results) => {
+                        if (canvasRef.current && videoRef.current) {
+                            const canvas = canvasRef.current;
+                            const ctx = canvas.getContext('2d');
+                            
+                            canvas.width = videoRef.current.videoWidth;
+                            canvas.height = videoRef.current.videoHeight;
+                            
+                            ctx.save();
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            
+                            if (results.multiFaceLandmarks) {
+                                for (const landmarks of results.multiFaceLandmarks) {
+                                    // Draw face mesh with love theme
+                                    ctx.strokeStyle = '#F48FB1';
+                                    ctx.lineWidth = 2;
+                                    
+                                    // Draw connections around eyes for blink detection
+                                    drawConnectors(ctx, landmarks, FACEMESH_TESSELATION, 
+                                        {color: '#F8BBD0', lineWidth: 1});
+                                    drawConnectors(ctx, landmarks, FACEMESH_RIGHT_EYE, 
+                                        {color: '#E57373', lineWidth: 2});
+                                    drawConnectors(ctx, landmarks, FACEMESH_LEFT_EYE, 
+                                        {color: '#E57373', lineWidth: 2});
+                                    
+                                    // Simple blink detection based on eye landmarks
+                                    const leftEyeHeight = calculateEyeHeight(landmarks, FACEMESH_LEFT_EYE);
+                                    const rightEyeHeight = calculateEyeHeight(landmarks, FACEMESH_RIGHT_EYE);
+                                    
+                                    if (leftEyeHeight < 0.01 && rightEyeHeight < 0.01) {
+                                        handleBlinkDetected();
+                                    }
+                                }
+                            }
+                            
+                            ctx.restore();
+                        }
+                    });
+                    
+                    const camera = new Camera(videoRef.current, {
+                        onFrame: async () => {
+                            await faceMesh.send({ image: videoRef.current });
+                        },
+                        width: 640,
+                        height: 480
+                    });
+                    
+                    await camera.start();
+                    setCameraReady(true);
+                    
+                } catch (error) {
+                    console.error('Error initializing face mesh:', error);
+                    // Fallback to simulation
+                    simulateBlinks();
+                }
+            }, []);
+            
+            // Calculate eye height for blink detection
+            const calculateEyeHeight = (landmarks, eyeIndices) => {
+                let minY = 1, maxY = 0;
+                for (const index of eyeIndices) {
+                    const landmark = landmarks[index];
+                    minY = Math.min(minY, landmark.y);
+                    maxY = Math.max(maxY, landmark.y);
+                }
+                return maxY - minY;
+            };
+            
+            // Handle blink detection
+            const handleBlinkDetected = useCallback(() => {
+                setBlinkCount(prev => prev + 1);
+                setLoveLevel(prev => Math.min(prev + 10, 100));
+                setHeartAnimation(true);
+                setSparkleTrigger(true);
+                
+                // Change photo
+                if (photos.length > 0) {
+                    setCurrentPhoto(prev => (prev + 1) % photos.length);
+                }
+                
+                // Set random emotion message
+                const randomMessage = emotionMessages[Math.floor(Math.random() * emotionMessages.length)];
+                setEmotionMessage(randomMessage);
+                
+                setTimeout(() => {
+                    setHeartAnimation(false);
+                    setSparkleTrigger(false);
+                    setEmotionMessage("");
+                }, 2000);
+            }, [photos.length]);
+            
+            // Simulate blinks for demo
+            const simulateBlinks = () => {
+                const interval = setInterval(() => {
+                    if (isDetecting && Math.random() > 0.7) {
+                        handleBlinkDetected();
+                    }
+                }, 2000);
+                
+                return () => clearInterval(interval);
+            };
+            
+            // Load photos
+            useEffect(() => {
+                // Simulate loading photos
+                const photoList = Array.from({ length: 10 }, (_, i) => `/photos/${i + 1}.jpeg`);
+                setPhotos(photoList);
+            }, []);
+            
+            // Start detection
+            const startDetection = async () => {
+                setIsDetecting(true);
+                await initializeFaceMesh();
+            };
+            
+            // Stop detection
+            const stopDetection = () => {
+                setIsDetecting(false);
+                setCameraReady(false);
+            };
+            
+            return (
+                <div className="min-h-screen p-6">
+                    <div className="max-w-6xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{fontFamily: 'Playfair Display, serif'}}>
+                                Your Love Journey Begins Here 💕
+                            </h1>
+                            <p className="text-xl text-gray-700">
+                                Every blink tells a story of connection and emotion
+                            </p>
+                        </div>
+                        
+                        {/* Main Content */}
+                        <div className="grid lg:grid-cols-2 gap-8">
+                            {/* Video Section */}
+                            <div className="space-y-6">
+                                <div className="glass p-6 rounded-3xl">
+                                    <h3 className="text-2xl font-semibold mb-4 text-center">
+                                        Your Beautiful Expression
+                                    </h3>
+                                    
+                                    <div className="video-container relative">
+                                        <video
+                                            ref={videoRef}
+                                            className="w-full h-auto rounded-2xl"
+                                            style={{ display: cameraReady ? 'block' : 'none' }}
+                                        />
+                                        <canvas
+                                            ref={canvasRef}
+                                            className="video-overlay"
+                                            style={{ display: cameraReady ? 'block' : 'none' }}
+                                        />
+                                        
+                                        {!cameraReady && (
+                                            <div className="w-full h-64 bg-gradient-to-br from-pink-200 to-purple-200 rounded-2xl flex items-center justify-center">
+                                                <div className="text-center">
+                                                    <span className="text-6xl mb-4 block">👁️</span>
+                                                    <p className="text-gray-700">
+                                                        {isDetecting ? 'Initializing camera...' : 'Click start to begin'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {isDetecting && (
+                                            <div className="absolute top-4 right-4">
+                                                <div className="flex items-center space-x-2 glass px-3 py-1 rounded-full">
+                                                    <span className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
+                                                    <span className="text-sm">Detecting</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        <SparkleEffect trigger={sparkleTrigger} />
+                                    </div>
+                                    
+                                    <div className="flex justify-center mt-6">
+                                        {!isDetecting ? (
+                                            <button
+                                                onClick={startDetection}
+                                                className="px-8 py-3 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-full hover:scale-105 transition-transform shadow-lg font-semibold"
+                                            >
+                                                Start Love Detection
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={stopDetection}
+                                                className="px-8 py-3 bg-gradient-to-r from-red-400 to-pink-400 text-white rounded-full hover:scale-105 transition-transform shadow-lg font-semibold"
+                                            >
+                                                Stop Detection
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {/* Stats */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="glass p-4 rounded-2xl text-center">
+                                        <div className={`text-4xl mb-2 ${heartAnimation ? 'heart-pulse' : ''}`}>
+                                            💕
+                                        </div>
+                                        <div className="text-2xl font-bold text-pink-600">
+                                            {blinkCount}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Love Moments
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="glass p-4 rounded-2xl text-center">
+                                        <div className="text-4xl mb-2">💝</div>
+                                        <div className="text-2xl font-bold text-purple-600">
+                                            {loveLevel}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            Love Level
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Photo & Interaction Section */}
+                            <div className="space-y-6">
+                                {/* Photo Display */}
+                                <div className="glass p-6 rounded-3xl">
+                                    <h3 className="text-2xl font-semibold mb-4 text-center">
+                                        Memory Gallery
+                                    </h3>
+                                    
+                                    <div className="relative">
+                                        {photos.length > 0 ? (
+                                            <img
+                                                src={photos[currentPhoto]}
+                                                alt={`Memory ${currentPhoto + 1}`}
+                                                className="w-full h-64 object-cover rounded-2xl"
+                                                onError={(e) => {
+                                                    e.target.src = `https://picsum.photos/seed/love${currentPhoto}/400/300.jpg`;
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-64 bg-gradient-to-br from-pink-100 to-purple-100 rounded-2xl flex items-center justify-center">
+                                                <span className="text-6xl">🌸</span>
+                                            </div>
+                                        )}
+                                        
+                                        {heartAnimation && (
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                <span className="text-8xl heart-pulse">💕</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="text-center mt-4">
+                                        <p className="text-sm text-gray-600">
+                                            Photo {currentPhoto + 1} of {photos.length || 10}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                {/* Love Meter */}
+                                <div className="glass p-6 rounded-3xl">
+                                    <h3 className="text-xl font-semibold mb-4 text-center">
+                                        Emotional Connection Meter
+                                    </h3>
+                                    <LoveMeter value={loveLevel} max={100} />
+                                    <p className="text-center mt-2 text-sm text-gray-600">
+                                        Keep blinking to fill your heart with love!
+                                    </p>
+                                </div>
+                                
+                                {/* Emotion Message */}
+                                {emotionMessage && (
+                                    <div className="glass p-4 rounded-2xl text-center glow">
+                                        <p className="text-lg font-semibold text-pink-600">
+                                            {emotionMessage}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Instructions */}
+                        <div className="mt-12 glass p-6 rounded-3xl">
+                            <h3 className="text-2xl font-semibold mb-4 text-center">
+                                How to Experience the Magic ✨
+                            </h3>
+                            <div className="grid md:grid-cols-3 gap-6">
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">👁️</div>
+                                    <h4 className="font-semibold mb-2">Look at the Camera</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Position yourself in good lighting and face the camera
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">😊</div>
+                                    <h4 className="font-semibold mb-2">Blink Naturally</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Each blink creates a magical moment of connection
+                                    </p>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl mb-2">💕</div>
+                                    <h4 className="font-semibold mb-2">Feel the Love</h4>
+                                    <p className="text-sm text-gray-600">
+                                        Watch as your expressions create beautiful memories
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // Main App Component
+        const App = () => {
+            return (
+                <div className="relative">
+                    <FloatingHearts />
+                    <BlinkDetector />
+                </div>
+            );
+        };
+        
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
