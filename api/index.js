@@ -149,120 +149,183 @@ const getHtmlContent = () => `<!DOCTYPE html>
             font-weight: normal;
             line-height: 1.6;
         }
+        
+        /* Memory Gallery Styles */
+        .memory-gallery {
+            animation: fadeIn 1.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(1.05); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .photo-display {
+            width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+        
+        .text-memory {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="min-h-screen flex flex-col items-center justify-center p-8">
-        <div class="text-center mb-12">
-            <h1 class="text-5xl md:text-6xl font-bold mb-6" style="font-family: 'Playfair Display', serif">
-                Begin Your Journey 💕
-            </h1>
-            <p class="text-xl text-gray-700 mb-4">
-                Flip each card to unlock the memories within
-            </p>
-            <p class="text-lg text-gray-600">
-                Cards flipped: <span id="cardCount">0</span> / 5
-            </p>
+    <div id="app">
+        <!-- Flip Cards Section -->
+        <div id="flipCardsSection" class="min-h-screen flex flex-col items-center justify-center p-8">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6" style="font-family: 'Playfair Display', serif">
+                    Begin Your Journey 💕
+                </h1>
+                <p class="text-xl text-gray-700 mb-4">
+                    Flip each card to unlock the memories within
+                </p>
+                <p class="text-lg text-gray-600">
+                    Cards flipped: <span id="cardCount">0</span> / 5
+                </p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
+                <div class="flip-card" onclick="flipCard(1)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="text-center">
+                                <div class="text-6xl mb-4">💖</div>
+                                <div>Soumya Dedh-</div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div class="text-center">
+                                <div class="text-4xl mb-4">💭</div>
+                                <p>pandurangwadi malum he??</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flip-card" onclick="flipCard(2)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="text-center">
+                                <div class="text-6xl mb-4">💖</div>
+                                <div>Alarm Mhatre</div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div class="text-center">
+                                <div class="text-4xl mb-4">💭</div>
+                                <p>mi mulund la rahto</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flip-card" onclick="flipCard(3)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="text-center">
+                                <div class="text-6xl mb-4">💖</div>
+                                <div>Vedika Vilas Tiger</div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div class="text-center">
+                                <div class="text-4xl mb-4">💭</div>
+                                <p>pen-fight kheltoy, khelnar tu pan?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flip-card" onclick="flipCard(4)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="text-center">
+                                <div class="text-6xl mb-4">💖</div>
+                                <div>Shubra Acer-mall</div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div class="text-center">
+                                <div class="text-4xl mb-4">💭</div>
+                                <p>tune maths ka ssignment kia he toh bhej na</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flip-card" onclick="flipCard(5)">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="text-center">
+                                <div class="text-6xl mb-4">💖</div>
+                                <div>hilani</div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div class="text-center">
+                                <div class="text-4xl mb-4">💭</div>
+                                <p>tera parabola banake ho gya toh meko bhi bata na</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="completeMessage" class="mt-12 text-center hidden">
+                <div class="inline-flex items-center space-x-2 bg-white bg-opacity-25 px-6 py-3 rounded-full">
+                    <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
+                    <span class="text-lg font-semibold">All cards unlocked! Preparing memories...</span>
+                </div>
+            </div>
         </div>
         
-        <div class="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
-            <div class="flip-card" onclick="flipCard(1)">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">💖</div>
-                            <div>Soumya Dedh-</div>
-                        </div>
-                    </div>
-                    <div class="flip-card-back">
-                        <div class="text-center">
-                            <div class="text-4xl mb-4">💭</div>
-                            <p>pandurangwadi malum he??</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flip-card" onclick="flipCard(2)">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">💖</div>
-                            <div>Alarm Mhatre</div>
-                        </div>
-                    </div>
-                    <div class="flip-card-back">
-                        <div class="text-center">
-                            <div class="text-4xl mb-4">💭</div>
-                            <p>mi mulund la rahto</p>
-                        </div>
+        <!-- Memory Gallery Section -->
+        <div id="memoryGallery" class="memory-gallery min-h-screen p-8 hidden">
+            <div class="max-w-4xl mx-auto">
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4" style="font-family: 'Playfair Display', serif">
+                        Time Flies By 💕
+                    </h1>
+                    <p class="text-lg text-gray-700 mb-4">
+                        Press <span class="bg-white bg-opacity-20 px-3 py-1 rounded-full font-mono">ENTER</span> to blink to next memory
+                    </p>
+                    <div class="inline-flex items-center space-x-2 bg-white bg-opacity-25 px-4 py-2 rounded-full">
+                        <span class="text-sm font-semibold">
+                            Memory <span id="memoryNumber">1</span> of <span id="totalMemories">50</span>
+                        </span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="flip-card" onclick="flipCard(3)">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">💖</div>
-                            <div>Vedika Vilas Tiger</div>
-                        </div>
-                    </div>
-                    <div class="flip-card-back">
-                        <div class="text-center">
-                            <div class="text-4xl mb-4">💭</div>
-                            <p>pen-fight kheltoy, khelnar tu pan?</p>
-                        </div>
-                    </div>
+                
+                <!-- Music Control -->
+                <div class="fixed top-6 right-6 z-10">
+                    <button id="musicToggle" class="bg-white bg-opacity-25 px-4 py-2 rounded-full hover:scale-105 transition-transform">
+                        <span class="text-lg">🔊</span>
+                    </button>
                 </div>
-            </div>
-            
-            <div class="flip-card" onclick="flipCard(4)">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">💖</div>
-                            <div>Shubra Acer-mall</div>
-                        </div>
-                    </div>
-                    <div class="flip-card-back">
-                        <div class="text-center">
-                            <div class="text-4xl mb-4">💭</div>
-                            <p>tune maths ka ssignment kia he toh bhej na</p>
-                        </div>
-                    </div>
+                
+                <!-- Memory Display -->
+                <div id="memoryDisplay" class="flex items-center justify-center min-h-[60vh]">
+                    <!-- Content will be dynamically inserted here -->
                 </div>
-            </div>
-            
-            <div class="flip-card" onclick="flipCard(5)">
-                <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                        <div class="text-center">
-                            <div class="text-6xl mb-4">💖</div>
-                            <div>hilani</div>
-                        </div>
-                    </div>
-                    <div class="flip-card-back">
-                        <div class="text-center">
-                            <div class="text-4xl mb-4">💭</div>
-                            <p>tera parabola banake ho gya toh meko bhi bata na</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="completeMessage" class="mt-12 text-center hidden">
-            <div class="inline-flex items-center space-x-2 bg-white bg-opacity-25 px-6 py-3 rounded-full">
-                <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
-                <span class="text-lg font-semibold">All cards unlocked! 🎉</span>
             </div>
         </div>
     </div>
     
     <script>
         let flippedCards = new Set();
+        let currentMemoryIndex = 0;
+        let status = { currentPhotoIndex: 0, totalPhotos: 50 };
+        let backgroundMusic = null;
         
+        // Flip card functionality
         function flipCard(cardNumber) {
             const card = document.querySelector(\`.flip-card:nth-child(\${cardNumber})\`);
             card.classList.toggle('flipped');
@@ -277,8 +340,159 @@ const getHtmlContent = () => `<!DOCTYPE html>
             
             if (flippedCards.size === 5) {
                 document.getElementById('completeMessage').classList.remove('hidden');
+                setTimeout(() => {
+                    showMemoryGallery();
+                }, 2000);
             }
         }
+        
+        // Show memory gallery
+        function showMemoryGallery() {
+            document.getElementById('flipCardsSection').classList.add('hidden');
+            document.getElementById('memoryGallery').classList.remove('hidden');
+            
+            // Start music
+            startBackgroundMusic();
+            
+            // Load initial status
+            loadStatus();
+            
+            // Add keyboard listener
+            document.addEventListener('keydown', handleKeyPress);
+        }
+        
+        // Load status from API
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/get_status');
+                status = await response.json();
+                updateMemoryDisplay();
+            } catch (error) {
+                console.error('Error loading status:', error);
+            }
+        }
+        
+        // Update memory display
+        function updateMemoryDisplay() {
+            const memoryDisplay = document.getElementById('memoryDisplay');
+            const memoryNumber = document.getElementById('memoryNumber');
+            const totalMemories = document.getElementById('totalMemories');
+            
+            memoryNumber.textContent = status.currentPhotoIndex + 1;
+            totalMemories.textContent = status.totalPhotos;
+            
+            if (status.currentPhotoIndex < 25) {
+                // Show photo
+                memoryDisplay.innerHTML = \`
+                    <div class="w-full">
+                        <img src="/photos/\${status.currentPhotoName}" 
+                             alt="Memory \${status.currentPhotoIndex + 1}" 
+                             class="photo-display rounded-lg shadow-2xl"
+                             onerror="this.src='data:image/svg+xml;base64,\${btoa('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"400\" height=\"300\" viewBox=\"0 0 400 300\"><rect width=\"400\" height=\"300\" fill=\"#F8BBD0\"/><text x=\"200\" y=\"150\" text-anchor=\"middle\" font-family=\"Arial\" font-size=\"24\" fill=\"#333\">Photo \${status.currentPhotoIndex + 1}</text></svg>')'}">
+                        <p class="text-center mt-4 text-gray-600">Beautiful Memory \${status.currentPhotoIndex + 1}</p>
+                    </div>
+                \`;
+            } else {
+                // Show text memory
+                const textMemories = [
+                    "there is no easy way to say this",
+                    "but",
+                    "it is over right??",
+                    "from shubra ki train miss to the anvesh 26",
+                    "all the moments we lived in these 3 years",
+                    "memories that i will treasure forever",
+                    "but those days will be behind us, after sometime",
+                    "of course not all memories are great",
+                    "but those represent us",
+                    "maybe it represents that no one is 100 percent perfect but when we meet each other we completely forget about the defects",
+                    "of course we were not that great of a group",
+                    "but",
+                    "i just want you to know that you guys mean alot to me even more than my family maybe",
+                    "and i will do anything in my power to keep shitposting alive till the end",
+                    "i just wish there was a button like the one you are clicking right now",
+                    "so that i would never press it",
+                    "just to live in a particular momment for lifetime",
+                    "but if it was there",
+                    "we would have never seen what else life had to offer",
+                    "alas!! we may or may not meet after these few days",
+                    "Guess we have to find out",
+                    "till then take care",
+                    "and dont you dare forget this group",
+                    "else",
+                    "i will come to your house and personally remind you of it",
+                    "in the end",
+                    "just remember 2 things",
+                    "1. woh aunty  jiska phone escalator se gira tha uska phone abhi bhi damaged he ",
+                    "and",
+                    "2. Jai Shree Allah",
+                    "bye"
+                ];
+                
+                const textIndex = status.currentPhotoIndex - 25;
+                const text = textMemories[textIndex] || "Memory not found";
+                
+                memoryDisplay.innerHTML = \`
+                    <div class="text-memory max-w-2xl">
+                        <div class="text-6xl mb-6">💭</div>
+                        <p class="text-2xl md:text-3xl font-light leading-relaxed">"\${text}"</p>
+                        <p class="text-lg mt-8 opacity-80">Memory \${status.currentPhotoIndex + 1}</p>
+                    </div>
+                \`;
+            }
+        }
+        
+        // Handle keyboard press
+        async function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                await triggerBlink();
+            }
+        }
+        
+        // Trigger blink
+        async function triggerBlink() {
+            try {
+                const response = await fetch('/api/manual_blink', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    status = data;
+                    updateMemoryDisplay();
+                }
+            } catch (error) {
+                console.error('Error triggering blink:', error);
+            }
+        }
+        
+        // Start background music
+        function startBackgroundMusic() {
+            backgroundMusic = new Audio('/music/She_&_Him_-_I_Thought_I_Saw_Your_Face_Today_Karaoke_Instrumental_Lower_Higher_Male_&_Original_Key_128k.mp3');
+            backgroundMusic.loop = true;
+            backgroundMusic.volume = 0.3;
+            
+            // Try to play music
+            const playPromise = backgroundMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log('Music autoplay prevented:', error);
+                });
+            }
+        }
+        
+        // Toggle music
+        document.getElementById('musicToggle').addEventListener('click', function() {
+            if (backgroundMusic) {
+                if (backgroundMusic.paused) {
+                    backgroundMusic.play();
+                    this.innerHTML = '<span class="text-lg">🔊</span>';
+                } else {
+                    backgroundMusic.pause();
+                    this.innerHTML = '<span class="text-lg">🔇</span>';
+                }
+            }
+        });
     </script>
 </body>
 </html>`;
