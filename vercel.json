@@ -2,8 +2,8 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+      "src": "api/app.py",
+      "use": "@vercel/python"
     },
     {
       "src": "public/**/*",
@@ -24,8 +24,12 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "src": "/get_status",
+      "dest": "/api/app.py"
+    },
+    {
+      "src": "/manual_blink",
+      "dest": "/api/app.py"
     },
     {
       "src": "/photos/(.*)",
@@ -37,10 +41,11 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/api/index.js"
+      "dest": "/api/app.py"
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "PYTHON_VERSION": "3.9"
   }
 }
