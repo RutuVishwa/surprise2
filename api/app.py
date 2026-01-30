@@ -1,6 +1,5 @@
 import json
 import os
-from pathlib import Path
 
 # Special text memories
 text_memories = [
@@ -37,7 +36,7 @@ text_memories = [
     "bye"
 ]
 
-# Global state (in production, you'd use a database)
+# Global state
 current_photo_index = 0
 last_blink_time = 0
 total_regular_photos = 25
@@ -45,15 +44,33 @@ total_regular_photos = 25
 def handler(request):
     global current_photo_index, last_blink_time
     
-    # Get photo files
-    photos_dir = Path(__file__).parent.parent / "public" / "photos"
+    # Get photo files - use a simpler approach
+    photo_files = []
     try:
-        photo_files = sorted(
-            [f.name for f in photos_dir.glob("*.jpg") + photos_dir.glob("*.jpeg")],
-            key=lambda x: int(x.split('.')[0]) if x.split('.')[0].isdigit() else 999
-        )
-    except:
+        # Try multiple possible paths
+        possible_paths = [
+            os.path.join(os.path.dirname(__file__), "..", "public", "photos"),
+            "/var/task/public/photos",
+            "public/photos",
+            "./public/photos"
+        ]
+        
+        for photos_dir in possible_paths:
+            if os.path.exists(photos_dir):
+                photo_files = sorted(
+                    [f for f in os.listdir(photos_dir) if f.endswith(('.jpg', '.jpeg'))],
+                    key=lambda x: int(x.split('.')[0]) if x.split('.')[0].isdigit() else 999
+                )
+                if photo_files:
+                    break
+                    
+    except Exception as e:
+        print(f"Error loading photos: {e}")
         photo_files = []
+    
+    # If no photos found, create placeholder list
+    if not photo_files:
+        photo_files = [f"{i}.jpeg" for i in range(1, 26)]
     
     # Handle different routes
     if request.method == "GET":
@@ -84,22 +101,47 @@ def handler(request):
                 })
             }
         
-        elif path == "/":
+        elif path == "/" or path == "":
             # Serve the main HTML file
             try:
-                with open(Path(__file__).parent.parent / "templates" / "index.html", "r") as f:
-                    html_content = f.read()
+                # Try multiple possible paths for the HTML file
+                html_paths = [
+                    os.path.join(os.path.dirname(__file__), "..", "templates", "index.html"),
+                    "/var/task/templates/index.html",
+                    "templates/index.html",
+                    "./templates/index.html"
+                ]
+                
+                html_content = None
+                for html_path in html_paths:
+                    if os.path.exists(html_path):
+                        with open(html_path, "r") as f:
+                            html_content = f.read()
+                        break
+                
+                if html_content:
+                    return {
+                        "statusCode": 200,
+                        "headers": {
+                            "Content-Type": "text/html"
+                        },
+                        "body": html_content
+                    }
+                else:
+                    return {
+                        "statusCode": 404,
+                        "headers": {
+                            "Content-Type": "text/plain"
+                        },
+                        "body": "Index page not found - tried multiple paths"
+                    }
+            except Exception as e:
                 return {
-                    "statusCode": 200,
+                    "statusCode": 500,
                     "headers": {
-                        "Content-Type": "text/html"
+                        "Content-Type": "text/plain"
                     },
-                    "body": html_content
-                }
-            except FileNotFoundError:
-                return {
-                    "statusCode": 404,
-                    "body": "Index page not found"
+                    "body": f"Error serving index page: {str(e)}"
                 }
     
     elif request.method == "POST":
@@ -159,5 +201,8 @@ def handler(request):
     
     return {
         "statusCode": 404,
-        "body": "Not found"
+        "headers": {
+            "Content-Type": "text/plain"
+        },
+        "body": f"Not found: {request.method} {request.path}"
     }
