@@ -17,6 +17,17 @@ app.use((req, res, next) => {
     next();
 });
 
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        service: 'love-blink-detection',
+        version: '2.0.0',
+        photos: getPhotoCount()
+    });
+});
+
 // API endpoint for blink detection status (simulated)
 app.get('/api/status', (req, res) => {
     res.json({

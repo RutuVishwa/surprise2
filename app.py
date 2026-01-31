@@ -372,6 +372,17 @@ def generate_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Render"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': time.time(),
+        'service': 'blink-detection-api',
+        'version': '1.0.0',
+        'photos_loaded': len(photo_files)
+    })
+
 @app.route('/')
 def index():
     """Serve the React frontend as a static file to avoid Jinja2 parsing"""
@@ -499,7 +510,9 @@ if __name__ == '__main__':
     print("🎯 Navigate to http://localhost:5000")
     
     try:
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        # Use environment variable for port, default to 5000
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port, debug=False)
     except KeyboardInterrupt:
         print("\n👋 Shutting down server...")
         if camera:

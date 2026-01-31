@@ -10,6 +10,36 @@ A React-based web feature that detects when a user blinks using their webcam and
 - **Touch-Friendly UI**: Optimized for mobile devices with touch-friendly controls
 - **Debug Mode**: Optional debug overlay showing eye landmarks and measurements
 - **Error Handling**: Graceful fallbacks for camera permission issues
+- **Production Ready**: Optimized for deployment on Render and other platforms
+
+## 🌐 Deployment
+
+### Render Deployment
+
+This project is configured for easy deployment on Render:
+
+1. **Push to GitHub**: Make sure your code is pushed to a GitHub repository
+2. **Connect to Render**: 
+   - Go to [Render Dashboard](https://dashboard.render.com/)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+   - Select the Node.js environment
+   - Use `npm start` as the start command
+   - Set the port to `3000` (or use Render's default)
+
+3. **Environment Variables**: Set up any required environment variables in Render's dashboard
+
+4. **Automatic Deployment**: Render will automatically build and deploy your application
+
+### Manual Deployment
+
+```bash
+# Install dependencies
+npm install
+
+# Start the production server
+npm start
+```
 
 ## 📱 Mobile Responsiveness
 
@@ -25,7 +55,8 @@ The component is designed to work seamlessly across all device sizes:
 - **MediaPipe FaceMesh**: Real-time facial landmark detection (CDN-based)
 - **WebRTC**: Camera access via `navigator.mediaDevices.getUserMedia`
 - **CSS Grid/Flexbox**: Responsive layout system
-- **No backend required**: Fully client-side implementation
+- **Node.js/Express**: Backend server for production deployment
+- **Python/Flask**: Alternative backend with OpenCV for advanced blink detection
 
 ## 📦 Installation & Setup
 

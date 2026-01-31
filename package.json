@@ -7,7 +7,9 @@
     "start": "node love-server.js",
     "dev": "node love-server.js",
     "original": "node server.js",
-    "install-deps": "npm install express"
+    "install-deps": "npm install express",
+    "build": "echo 'No build step required'",
+    "heroku-postbuild": "echo 'No post-build required'"
   },
   "keywords": [
     "react",
@@ -30,7 +32,7 @@
   },
   "devDependencies": {},
   "engines": {
-    "node": ">=14.0.0",
-    "npm": ">=6.0.0"
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   }
 }
