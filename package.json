@@ -1,19 +1,24 @@
 {
   "name": "love-blink-detection",
   "version": "2.0.0",
-  "description": "Love-themed blink detection experience for Vercel deployment",
-  "main": "api/index.js",
+  "description": "Love-themed blink detection experience with MediaPipe FaceMesh and Node.js server",
+  "main": "love-server.js",
   "scripts": {
-    "start": "node api/index.js",
-    "dev": "node api/index.js",
-    "build": "echo 'Build complete - static files ready'",
-    "vercel-build": "npm run build"
+    "start": "node love-server.js",
+    "dev": "node love-server.js",
+    "original": "node server.js",
+    "install-deps": "npm install express"
   },
   "keywords": [
     "react",
+    "computer-vision",
+    "mediapipe",
+    "face-mesh",
     "blink-detection",
-    "vercel",
-    "serverless",
+    "webcam",
+    "eye-tracking",
+    "nodejs",
+    "express",
     "love-theme",
     "emotional-design",
     "human-connection"
@@ -21,8 +26,7 @@
   "author": "Love Engineer 💕",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "express": "^4.18.2"
   },
   "devDependencies": {},
   "engines": {
