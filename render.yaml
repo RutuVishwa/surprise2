@@ -1,7 +1,7 @@
 services:
   # Node.js Web Service
   - type: web
-    name: love-blink-detection
+    name: surprise2
     env: node
     plan: free
     buildCommand: "npm install"
@@ -15,7 +15,7 @@ services:
     
   # Python Web Service (for blink detection)
   - type: web
-    name: blink-detection-api
+    name: surprise2-api
     env: python
     plan: free
     buildCommand: "pip install -r requirements.txt"
