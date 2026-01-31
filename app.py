@@ -55,7 +55,7 @@ blink_detected = False
 last_blink_time = 0
 current_content = 'A'
 current_photo_index = 0
-photos_folder = os.path.join(os.path.dirname(__file__), 'photos')
+photos_folder = os.path.join(os.path.dirname(__file__), 'public', 'photos')
 print(f"📁 Photos folder path: {photos_folder}")
 print(f"📁 Photos folder exists: {os.path.exists(photos_folder)}")
 photo_files = []  # Will be populated with actual photo paths
